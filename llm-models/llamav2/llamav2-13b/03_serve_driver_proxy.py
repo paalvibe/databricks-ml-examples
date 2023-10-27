@@ -31,16 +31,41 @@ notebook_login()
 
 # COMMAND ----------
 
+# with open("/root/.cache/huggingface/token") as f:
+#     token = f.read()
+
+# COMMAND ----------
+
 # Load model to text generation pipeline
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import transformers
 import torch
 
 # it is suggested to pin the revision commit hash and not change it for reproducibility because the uploader might change the model afterwards; you can find the commmit history of llamav2-7b-chat in https://huggingface.co/facebook/llamav2-7b-chat/commits/main
-model = "meta-llama/Llama-2-13b-chat-hf"
-revision = "4021a3b5608262f386b2bee683b6348e9228325d"
+# model = "meta-llama/Llama-2-13b-chat-hf"
+# revision = "4021a3b5608262f386b2bee683b6348e9228325d"
+# Causes:
+#
+# meta-llama/Llama-2-13b-chat-hf is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+#
+# Most likely because I hadn't accepted Meta's terms. They will mail me when I get access.
+# Got a reply really fast. Retrying.
+# 
 
-tokenizer = AutoTokenizer.from_pretrained(model)
+# Works, but with warning: You are using the legacy behaviour of the <class 'transformers.models.llama.tokenization_llama.LlamaTokenizer'>. This means that tokens that come after special tokens will not be properly handled. We recommend you to read the related pull request available at https://github.com/huggingface/transformers/pull/24565
+# Deploying as endpoint works fine
+model = "georgesung/llama2_7b_chat_uncensored"
+revision = "e9a972b12c6b59bfbcf30fe3779c2c933ce755bd"
+
+model = "RuterNorway/Llama-2-13b-chat-norwegian-LoRa"
+revision = "47147170e42c62eb0e030f8621e1da8808de646e"
+
+# mistral, Brynje says it is much better than llama
+# model = "ehartford/dolphin-2.1-mistral-7b"
+# revision = "20db79f71731bc314ee646019c63d29beeb61d7d"
+
+
+tokenizer = AutoTokenizer.from_pretrained(model, use_auth_token=True)
 pipeline = transformers.pipeline(
     "text-generation",
     model=model,
@@ -48,6 +73,7 @@ pipeline = transformers.pipeline(
     torch_dtype=torch.bfloat16,
     trust_remote_code=True,
     device_map="auto",
+    use_auth_token=True,
     revision=revision,
     return_full_text=False, # don't return the prompt, only return the generated response
 )
@@ -165,3 +191,7 @@ port = {port}
 # COMMAND ----------
 
 app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
+
+# COMMAND ----------
+
+

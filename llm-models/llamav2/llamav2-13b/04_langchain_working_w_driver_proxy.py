@@ -31,7 +31,7 @@
 from langchain.llms import Databricks
 
 # This model serving endpoint is created in `02_mlflow_logging_inference`
-llm = Databricks(endpoint_name='trainingmodels.default.llama_2_13b_chat_hf')
+llm = Databricks(endpoint_name='models.default.llama2_13b_chat_model')
 
 # COMMAND ----------
 

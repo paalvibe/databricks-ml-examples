@@ -12,6 +12,7 @@
 
 # MAGIC %pip install -U "mlflow-skinny[databricks]>=2.4.1"
 # MAGIC %pip install -U transformers==4.34.0
+# MAGIC %pip install -U cloudpickle==2.2.1  # If not cloudpickle 2.2.1 fails
 # MAGIC %pip install -U databricks-sdk
 # MAGIC dbutils.library.restartPython()
 
@@ -230,7 +231,7 @@ mlflow.set_registry_uri("databricks-uc")
 
 # Register model to Unity Catalog
 
-registered_name = "models.default.mistral_7b_chat_completion"  # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
+registered_name = "trainingmodels.default.mistral_7b_chat_completion"  # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
 
 
 result = mlflow.register_model(
@@ -259,7 +260,7 @@ client.set_registered_model_alias(
 import mlflow
 import pandas as pd
 
-registered_name = "models.default.mistral_7b_chat_completion"
+registered_name = "trainingmodels.default.mistral_7b_chat_completion"
 loaded_model = mlflow.pyfunc.load_model(f"models:/{registered_name}@Champion")
 
 # Make a prediction using the loaded model
@@ -292,21 +293,27 @@ from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.serving import EndpointCoreConfigInput
 w = WorkspaceClient()
 
-model_version = result  # the returned result of mlflow.register_model
+# model_version = result  # the returned result of mlflow.register_model
+# model_version = 1  # the returned result of mlflow.register_model
 
 # Specify the type of compute (CPU, GPU_SMALL, GPU_MEDIUM, etc.)
 # Choose GPU_MEDIUM on Azure, and `GPU_LARGE` on Azure
-workload_type = "GPU_LARGE"
-
+# On AWS use GPU_BIG
+workload_type = "GPU_BIG"
+model_version_name = model_version.name
+# registered_name = "trainingmodels.default.mistral_7b_chat_completion"
+model_version_name = registered_name
+model_version_version = model_version.version
+# model_version_version = 1 # model_version.version
 config = EndpointCoreConfigInput.from_dict({
     "served_models": [
         {
-            "name": f'{model_version.name.replace(".", "_")}_{model_version.version}',
-            "model_name": model_version.name,
-            "model_version": model_version.version,
+            "name": f'{model_version_name.replace(".", "_")}_{model_version_version}',
+            "model_name": "trainingmodels.default.mistral_7b_chat_completion", # model_version.name,
+            "model_version": 1, # model_version.version,
             "workload_type": workload_type,
             "workload_size": "Small",
-            "scale_to_zero_enabled": "False",
+            "scale_to_zero_enabled": "True",
         }
     ]
 })

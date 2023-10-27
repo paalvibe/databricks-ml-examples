@@ -46,20 +46,23 @@ def transform_output(response):
 # COMMAND ----------
 
 # If using serving endpoint, the model serving endpoint is created in `02_[chat]_mlflow_logging_inference`
-# llm = Databricks(endpoint_name='llama2-7b-chat',
+# host = ''
+# llm = Databricks(host=host,
+#                  cluster_id=cluster_id,
+#                  endpoint_name='mistral-7b-chat-completion',
 #                  transform_input_fn=transform_input,
 #                  transform_output_fn=transform_output,)
 
 # If the model is a cluster driver proxy app on the same cluster, you only need to specify the driver port.
-llm = Databricks(cluster_driver_port="7777",
-                 transform_input_fn=transform_input,
-                 transform_output_fn=transform_output,)
-
-# If the model is a cluster driver proxy app on the different cluster, you need to provide the cluster id
-# llm = Databricks(cluster_id="0000-000000-xxxxxxxx"
-#                  cluster_driver_port="7777",
+# llm = Databricks(cluster_driver_port="7777",
 #                  transform_input_fn=transform_input,
 #                  transform_output_fn=transform_output,)
+
+# If the model is a cluster driver proxy app on the different cluster, you need to provide the cluster id
+llm = Databricks(cluster_id="0000-000000-xxxxxxxx"
+                 cluster_driver_port="7777",
+                 transform_input_fn=transform_input,
+                 transform_output_fn=transform_output,)
 
 print(llm("How to master Python in 3 days?"))
 

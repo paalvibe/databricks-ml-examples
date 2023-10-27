@@ -33,10 +33,10 @@ notebook_login()
 # COMMAND ----------
 
 # it is suggested to pin the revision commit hash and not change it for reproducibility because the uploader might change the model afterwards; you can find the commmit history of llamav2-7b-chat in https://huggingface.co/facebook/llamav2-7b-chat/commits/main
-model = "meta-llama/Llama-2-13b-chat-hf"
-revision = "4021a3b5608262f386b2bee683b6348e9228325d"
-# model = "ehartford/dolphin-2.1-mistral-7b"
-# revision = "20db79f71731bc314ee646019c63d29beeb61d7d"
+# model = "meta-llama/Llama-2-13b-chat-hf"
+# revision = "4021a3b5608262f386b2bee683b6348e9228325d"
+model = "ehartford/dolphin-2.1-mistral-7b"
+revision = "20db79f71731bc314ee646019c63d29beeb61d7d"
 
 
 from huggingface_hub import snapshot_download
@@ -176,9 +176,7 @@ mlflow.set_registry_uri("databricks-uc")
 # Register model to Unity Catalog
 # This may take 2.2 minutes to complete
 
-
-registered_name = "trainingmodels.default.llama_2_13b_chat_hf" # Note that the UC model name follows the pattern <catalog_name>.
-# registered_name = "trainingmodels.default.dolphin_2_1_mistral_7b" # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
+registered_name = "trainingmodels.default.dolphin_2_1_mistral_7b" # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
 
 
 result = mlflow.register_model(
@@ -214,10 +212,6 @@ loaded_model.predict(
         "max_new_tokens": [100, 100],
     }
 )
-
-# COMMAND ----------
-
-# MAGIC %ls /tmp/tmpwldtgqfj/artifacts/4021a3b5608262f386b2bee683b6348e9228325d/
 
 # COMMAND ----------
 

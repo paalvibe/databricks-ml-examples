@@ -10,6 +10,7 @@
 # MAGIC Environment for this notebook:
 # MAGIC - Runtime: 14.0 GPU ML Runtime
 # MAGIC - Instance: `g5.xlarge` on AWS, `Standard_NV36ads_A10_v5` on Azure
+# MAGIC - Will not run on g4dn.4xlarge
 
 # COMMAND ----------
 
@@ -101,7 +102,7 @@ def serve_mistral_7b_instruct():
 from dbruntime.databricks_repl_context import get_context
 ctx = get_context()
 
-port = "7777"
+port = "7778"
 driver_proxy_api = f"https://{ctx.browserHostName}/driver-proxy-api/o/0/{ctx.clusterId}/{port}"
 
 print(f"""
@@ -109,6 +110,67 @@ driver_proxy_api = '{driver_proxy_api}'
 cluster_id = '{ctx.clusterId}'
 port = {port}
 """)
+
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Store cluster vars as constants to retrieve in other notebooks
+
+# COMMAND ----------
+
+# Create table in the metastore
+constants_table = "training.llm_langchain_shared.server_constants"
+# DeltaTable.createIfNotExists(spark) \
+#   .tableName(constants_table) \
+#   .addColumn("key", "STRING") \
+#   .addColumn("val", "STRING")\
+#   .execute()
+
+schema = "training.llm_langchain_shared"
+# Grant select and modify permissions for the table to all users on the account.
+# This also works for other account-level groups and individual users.
+spark.sql(f"""
+CREATE SCHEMA IF NOT EXISTS {schema};
+""")
+
+spark.sql(f"""DROP TABLE {constants_table}""")
+          
+spark.sql(f"""
+CREATE TABLE IF NOT EXISTS {constants_table}
+  (
+    name STRING,
+    var STRING
+  )""")
+
+
+# Grant select and modify permissions for the table to all users on the account.
+# This also works for other account-level groups and individual users.
+spark.sql(f"""
+  GRANT SELECT
+  ON TABLE {constants_table}
+  TO `account users`""")
+
+# COMMAND ----------
+
+# Parse out host name
+from urllib.parse import urlparse
+host = urlparse(driver_proxy_api).netloc
+print(host) # --> www.example.test
+
+# COMMAND ----------
+
+from pyspark.sql import Row
+constants = [
+    Row("cluster_id", ctx.clusterId),
+    Row("port", port),
+    Row("driver_proxy_api", driver_proxy_api),
+    Row("host", host)
+]
+constants_df = spark.createDataFrame(constants)
+constants_df.write.insertInto(constants_table, overwrite=True)
+constants_df.show()
 
 # COMMAND ----------
 
